@@ -46,7 +46,7 @@ endef
 define Package/chrony-nts
 $(call Package/chrony/Default)
   TITLE+= (with NTS)
-  DEPENDS+= +PACKAGE_chrony-nts:libgnutls +PACKAGE_chrony-nts:ca-bundle
+  DEPENDS+= +libgnutls +ca-bundle
   VARIANT:=with-nts
   CONFLICTS:=chrony chrony-rtc chrony-nts-rtc
 endef
@@ -61,7 +61,7 @@ endef
 define Package/chrony-nts-rtc
 $(call Package/chrony/Default)
   TITLE+= (with NTS and RTC)
-  DEPENDS+= +PACKAGE_chrony-nts-rtc:libgnutls +PACKAGE_chrony-nts-rtc:ca-bundle
+  DEPENDS+= +libgnutls +ca-bundle
   VARIANT:=with-nts-rtc
   CONFLICTS:=chrony chrony-nts chrony-rtc
 endef
