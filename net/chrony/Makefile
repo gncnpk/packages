@@ -9,7 +9,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=chrony
 PKG_VERSION:=4.6.1
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://chrony-project.org/releases/
@@ -33,14 +33,14 @@ define Package/chrony/Default
   USERID:=chrony=323:chrony=323
   TITLE:=A versatile NTP client and server
   URL:=http://chrony.tuxfamily.org/
-  PROVIDES:=nts
+  PROVIDES:=nts rtc nts-rtc
 endef
 
 define Package/chrony
 $(call Package/chrony/Default)
-  TITLE+= (without NTS)
+  TITLE+= (without NTS or RTC)
   VARIANT:=normal
-  CONFLICTS:=chrony-nts
+  CONFLICTS:=chrony-nts chrony-rtc chrony-nts-rtc
 endef
 
 define Package/chrony-nts
@@ -48,13 +48,29 @@ $(call Package/chrony/Default)
   TITLE+= (with NTS)
   DEPENDS+= +PACKAGE_chrony-nts:libgnutls +PACKAGE_chrony-nts:ca-bundle
   VARIANT:=with-nts
+  CONFLICTS:=chrony chrony-rtc chrony-nts-rtc
+endef
+
+define Package/chrony-rtc
+$(call Package/chrony/Default)
+  TITLE+= (with RTC)
+  VARIANT:=with-rtc
+  CONFLICTS:=chrony chrony-nts chrony-nts-rtc
+endef
+
+define Package/chrony-nts-rtc
+$(call Package/chrony/Default)
+  TITLE+= (with NTS and RTC)
+  DEPENDS+= +PACKAGE_chrony-nts-rtc:libgnutls +PACKAGE_chrony-nts-rtc:ca-bundle
+  VARIANT:=with-nts-rtc
+  CONFLICTS:=chrony chrony-nts chrony-rtc
 endef
 
 define Package/chrony/description
 	An NTP client and server designed to perform well in a wide range
 	of conditions. It can synchronize the system clock with NTP servers,
 	reference clocks, and manual input using wristwatch and keyboard.
-	This package does NOT include NTS support.
+	This package does NOT include NTS or RTC support.
 endef
 
 define Package/chrony-nts/description
@@ -64,12 +80,28 @@ define Package/chrony-nts/description
 	This package includes NTS support.
 endef
 
+define Package/chrony-rtc/description
+	An NTP client and server designed to perform well in a wide range
+	of conditions. It can synchronize the system clock with NTP servers,
+	reference clocks, and manual input using wristwatch and keyboard.
+	This package includes RTC support.
+endef
+
+define Package/chrony-nts-rtc/description
+	An NTP client and server designed to perform well in a wide range
+	of conditions. It can synchronize the system clock with NTP servers,
+	reference clocks, and manual input using wristwatch and keyboard.
+	This package includes NTS and RTC support.
+endef
+
 define Package/chrony/conffiles
 /etc/chrony/chrony.conf
 /etc/config/chrony
 endef
 
 Package/chrony-nts/conffiles = $(Package/chrony/conffiles)
+Package/chrony-rtc/conffiles = $(Package/chrony/conffiles)
+Package/chrony-nts-rtc/conffiles = $(Package/chrony/conffiles)
 
 CONFIGURE_ARGS+= \
 	--host-machine=$(shell echo $(GNU_TARGET_NAME) | sed -e 's/-.*//') \
@@ -78,9 +110,9 @@ CONFIGURE_ARGS+= \
 	--sysconfdir=/etc/chrony \
 	--prefix=/usr \
 	--chronyrundir=/var/run/chrony \
-	$(if $(findstring normal,$(BUILD_VARIANT)),--disable-nts,--enable,nts) \
+	$(if $(findstring nts,$(BUILD_VARIANT)),--enable-nts,--disable-rts) \
 	--disable-readline \
-	--disable-rtc \
+	$(if $(findstring rtc,$(BUILD_VARIANT)),--enable-rtc,--disable-rtc) \
 	--disable-sechash \
 	--with-user=chrony
 
@@ -103,6 +135,10 @@ define Package/chrony/install
 endef
 
 Package/chrony-nts/install= $(Package/chrony/install)
+Package/chrony-rtc/install= $(Package/chrony/install)
+Package/chrony-nts-rtc/install= $(Package/chrony/install)
 
 $(eval $(call BuildPackage,chrony))
 $(eval $(call BuildPackage,chrony-nts))
+$(eval $(call BuildPackage,chrony-rtc))
+$(eval $(call BuildPackage,chrony-nts-rtc))
